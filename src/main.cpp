@@ -57,9 +57,9 @@ int main() {
     std::cout << log << '\n';
   }
 
-  // initialize input data
-  std::vector<int> input(4096);
-  std::fill(input.begin(), input.end(), 3);
+  // initialize input data with 1 billion ints
+  std::vector<int> input(1000000000);
+  std::fill(input.begin(), input.end(), 0);
 
   // initialize input buffer
   cl::Buffer inBuf(context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR | CL_MEM_HOST_NO_ACCESS, sizeof(int) * input.size(), input.data());
@@ -73,13 +73,13 @@ int main() {
   // initialize command queue
   cl::CommandQueue queue(context, device);
 
+  std::cout << "letting OpenCL do it's magic...\n";
+
   // queue the kernel and asynchronously put the data back in the vector
   queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(input.size()));
   queue.enqueueReadBuffer(inBuf, false, 0, sizeof(int) * input.size(), input.data());
 
-  std::cout << "letting OpenCL do it's magic...\n";
-
-  // await async buffer read
+  // await kernel completion and buffer read
   cl::finish();
 
   // print the first value of the vector
